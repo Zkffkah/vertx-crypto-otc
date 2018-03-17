@@ -1,0 +1,3 @@
+rootProject.name = 'vertx-crypto-otc'
+include 'core-service'
+
