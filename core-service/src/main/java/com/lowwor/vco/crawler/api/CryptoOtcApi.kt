@@ -2,7 +2,6 @@ package com.lowwor.vco.crawler.api
 
 import com.lowwor.vco.crawler.mapper.*
 import com.lowwor.vco.crawler.model.*
-import com.lowwor.vco.data.mapper.*
 import com.lowwor.vco.crawler.model.price.OtcPriceItem
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.Observables.zip
@@ -25,26 +24,20 @@ class CryptoOtcApi constructor(private val cryptoOtcService: CryptoOtcService) {
                     OtcbtcMapper.convertToOneStepUsdtEntrancePrice(otcbtcPriceRsp[0])
             )
         })
-}
+    }
 
     fun getBtcPrices(): Observable<List<OtcPriceItem>> {
-        return zip(getHuobiOtcUsdt().flatMap<Float> { huobiOtcUsdtRsp ->
-            return@flatMap getHuobiTickerBtc().map {
-                (huobiOtcUsdtRsp.data[0].price * it.tick.data[0].price).toFloat()
-            }
-        },
-                getGankOtcUsdt().flatMap { gankOtcRsp ->
-                    return@flatMap getGankTickerBtc().map { gankTickerBtcRsp ->
-                        (gankTickerBtcRsp.last * gankOtcRsp.appraisedRates?.buyRate!!.toDouble()).toFloat()
-                    }
-                },
+        return zip(getHuobiOtcUsdt(), getHuobiTickerBtc(),
+                getGankOtcUsdt(), getGankTickerBtc(),
                 getHuobiOtcBtc(), getOtcbtcOtcBtc(),
-                getZbTickerBtc(), getLocalBitcoinOtcBtc(), { huobiTwoStepBtcPrice, gankTwoStepBtcPrice, huoBiPriceRsp, otcbtcPriceRsp, zbPriceRsp,
+                getZbTickerBtc(), getLocalBitcoinOtcBtc(), { huobiOtcUsdtRsp, huobiTickerBtcRsp,
+                                                             gankOtcUsdtRsp, gankTickerBtcRsp,
+                                                             huoBiPriceRsp, otcbtcPriceRsp, zbPriceRsp,
                                                              localBitcoinsPriceRsp ->
 
-            listOf(HuobiMapper.convertToTwoStepBtcToEntrancePrice(huobiTwoStepBtcPrice),
+            listOf(HuobiMapper.convertToTwoStepBtcToEntrancePrice(huobiOtcUsdtRsp, huobiTickerBtcRsp),
                     HuobiMapper.convertToOneStepBtcEntrancePrice(huoBiPriceRsp),
-                    GankMapper.convertToTwoStepBtcEntrancePrice(gankTwoStepBtcPrice),
+                    GankMapper.convertToTwoStepBtcEntrancePrice(gankOtcUsdtRsp, gankTickerBtcRsp),
                     OtcbtcMapper.convertToOneStepBtcEntrancePrice(otcbtcPriceRsp[0]),
                     ZbMapper.convertToQcBtcEntrancePrice(zbPriceRsp),
                     LocalBitcoinMapper.convertToOneStepBtcEntrancePrice(localBitcoinsPriceRsp)

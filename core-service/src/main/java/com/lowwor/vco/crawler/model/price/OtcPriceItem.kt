@@ -5,58 +5,32 @@ package com.lowwor.vco.crawler.model.price
  */
 
 
-const val HUOBI_NAME = "huobi.pro"
-const val GANK_NAME = "gank.io"
-const val OTCBTC_NAME = "otcbtc.com"
-const val ZB_NAME = "zb.com"
-const val LOCALBITCOINS_NAME = "localbitcoins.com"
+open class OtcPriceItem(
+        val totalRate: Float,
+        val exchange: Exchange,
+        val steps: List<Step>
+)
 
-sealed class OtcPriceItem {
-    abstract val price: Float?
-    abstract val name: String?
-    abstract val step: String?
-}
+ class HuobiOtcUsdtPriceItem(usdtRate: Float) : OtcPriceItem(usdtRate, Exchange.Huobi(), listOf(Step.CnyToUsdt(usdtRate)))
 
-data class DefaultPriceItem(override val price: Float?,
-                            override val name: String?,
-                            override val step: String?) : OtcPriceItem()
+class HuobiOtcUsdtBtcPriceItem(usdtRate: Float, btcRate: Float) : OtcPriceItem(usdtRate * btcRate, Exchange.Huobi(),
+        listOf(Step.CnyToUsdt(usdtRate), Step.UsdtToElse(Symbol.Btc(), btcRate)))
 
-data class HuobiOtcUsdtPriceItem(override val price: Float?,
-                                 override val name: String? = HUOBI_NAME,
-                                 override val step: String? = "cny -> usdt") : OtcPriceItem()
+class GankOtcUsdtPriceItem(usdtRate: Float) : OtcPriceItem(usdtRate, Exchange.Gank(), listOf(Step.CnyToUsdt(usdtRate)))
 
-data class HuobiOtcUsdtBtcPriceItem(override val price: Float?,
-                                    override val name: String? = HUOBI_NAME,
-                                    override val step: String? = "cny -> usdt \n usdt -> btc"
-) : OtcPriceItem()
+class GankOtcUsdtBtcPriceItem(usdtRate: Float, btcRate: Float) : OtcPriceItem(usdtRate * btcRate, Exchange.Gank(),
+        listOf(Step.CnyToUsdt(usdtRate), Step.UsdtToElse(Symbol.Btc(), btcRate)))
 
-data class GankOtcUsdtPriceItem(override val price: Float?,
-                                override val name: String = GANK_NAME,
-                                override val step: String? = "cny -> usdt") : OtcPriceItem()
+class OtcbtcUsdtPriceItem(usdtRate: Float) : OtcPriceItem(usdtRate, Exchange.Otcbtc(), listOf(Step.CnyToUsdt(usdtRate)))
 
-data class GankOtcUsdtBtcPriceItem(override val price: Float?,
-                                   override val name: String = GANK_NAME,
-                                   override val step: String? = "cny -> usdt \n usdt -> btc") : OtcPriceItem()
+class HuobiOtcBtcPriceItem(btcRate: Float) : OtcPriceItem(btcRate, Exchange.Huobi(), listOf(Step.CnyToElse(Symbol.Btc(), btcRate)))
 
-data class OtcbtcUsdtPriceItem(override val price: Float?,
-                               override val name: String = OTCBTC_NAME,
-                               override val step: String? = "cny -> usdt") : OtcPriceItem()
+class ZbQcBtcPriceItem(qc: Float, btcRate: Float) : OtcPriceItem(qc * btcRate, Exchange.Zb(),
+        listOf(Step.CnyToQc(qc), Step.QcToElse(Symbol.Btc(), btcRate)))
 
-data class HuobiOtcBtcPriceItem(override val price: Float?,
-                                override val name: String = HUOBI_NAME,
-                                override val step: String? = "cny -> btc") : OtcPriceItem()
+class OtcbtcOtcBtcPriceItem(btcRate: Float) : OtcPriceItem(btcRate, Exchange.Otcbtc(), listOf(Step.CnyToElse(Symbol.Btc(), btcRate)))
 
-data class ZbQcBtcPriceItem(override val price: Float?,
-                            override val name: String = ZB_NAME,
-                            override val step: String? = "cny -> qc \n qc -> btc") : OtcPriceItem()
-
-data class OtcbtcOtcBtcPriceItem(override val price: Float?,
-                                 override val name: String = OTCBTC_NAME,
-                                 override val step: String? = "cny -> btc") : OtcPriceItem()
-
-data class LocalBitcoinOtcBtcPriceItem(override val price: Float?,
-                                       override val name: String = LOCALBITCOINS_NAME,
-                                       override val step: String? = "cny -> btc") : OtcPriceItem()
+class LocalBitcoinOtcBtcPriceItem(btcRate: Float) : OtcPriceItem(btcRate, Exchange.LocalBitcoin(), listOf(Step.CnyToElse(Symbol.Btc(), btcRate)))
 
 
 
